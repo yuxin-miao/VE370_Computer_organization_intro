@@ -18,11 +18,46 @@ Performance
 - Instruction count: **IC** (由program, ISA, complier 决定)
 - Clock Cycle per Instruction: **CPI**
 - Clock Cycles = IC * CPI
-- 
 
+> momorize the equation
+>
 > GHz = $10^9$
 
 # Chapter 2
+
+<p center> **Operation and Operands ** <p>
+
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200918202135979.png" alt="image-20200918202135979" style="zoom:50%;" />
+
+- Instruction Set 
+  - RISC: reduced instruction set computer
+  - CISC: complex instruction set computer
+
+MIPS Instruction Set
+
+Design Principle 
+
+1. Simplicity favors regularity. 
+2. Smaller is faster 
+3. Make the common case faster 
+
+## Register Operands 
+
+MIPS architecture has a 32*32-bit register file 
+
+> \$zero: constant 0 (reg 0, also written as 0)
+> \$at: Assembler Temporary (reg 1, or 1)
+> \$v0, v1: result values (reg’s 2 and 3, or 2 and 3); use value for function result 
+> \$a0 – a3: arguments (reg’s 4 – 7, or 4 - 7)
+> \$t0 – t7: temporaries (reg’s 8 – 15, or 8 - 15); can be overwritten by callee
+> \$s0 – s7: saved (reg’s 16 – 23, or 16 - 23); be saved/restored by callee
+> \$t8, t9: temporaries (reg’s 24 and 25, or 24 and 25)
+> \$k0, k1: reserved for OS kernel (reg’s 26 and 27, 26/27) 
+>
+> \$gp: global pointer for static data (reg 28, or 28)
+> \$sp: stack pointer (reg 29, or 29)
+> \$fp: frame pointer (reg 30, or 30)
+> \$ra: return address (reg 31, or \$31)
 
 ```assembly
 lw rt, offset(rs)# offset should be 4*(an integer) offset: a 16-bits 2's complement number
@@ -40,30 +75,104 @@ sh rt, offset(rs)
 
 ```
 
-## load word
+## Memory Operands
+
+- mainly for composite data (arrays, structures, dynamic data)
+
+- steps 
+
+  - `lw`: from memory into registers 
+  - perfrom arithmetic operations with registers
+  - `sw`: from register back to memory 
+
+- Byte addressable - each address identifies a 8-bit byte
+
+- organized in word  
+
+-  Big/little Endian: MIPS is big Endian 
+
+  <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200918185859922.png" alt="image-20200918185859922" style="zoom:50%;" />
+
+```c
+g = h + A[8]
+```
+
+h in \$s2, base address of A in \$s3
+
+### load word
 
 from the content in register (\$s3), the content + offset (32), is the address of the content need to be loaded.
 
 The content in the address ( content in register (\$s3) + offset (32)) is loaded in \$t0
 
+`$t0 ` load in the content in this address. Content: A[8]
+
 <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200917162604239.png" alt="image-20200917162604239" style="zoom:50%;" />
 
-## Store Word
+### Store Word
+
+```assembly
+lw $t0, 32($s3)
+add $t0, $s2, $t0
+sw $t0, 48($s3) 
+```
 
 Store the content in \$t0, into the content of the address (content in \$s3 + 48)
 
 ![image-20200917162852822](/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200917162852822.png)
 
-## Meaning of each name
+- difference between `lb` and `lbu`
 
-Here is the meaning of each name of the fields in MIPS instructions:
+  `lb`: load byte; R[rt] = SignExt(M[R[rs]+SignExtImm])
 
-- *op:* Basic operation of the instruction, traditionally called the **opcode**.
-- *rs:* The first register source operand.
-- *rt:* The second register source operand.
-- *rd:* The register destination operand. It gets the result of the operation.
-- *shamt:* Shift amount. (Section 2.6 explains shift instructions and this term; it will not be used until then, and hence the field contains zero in this section.)
-- *funct:* Function. This field, often called the *function code,* selects the specific variant of the operation in the op field.
+  `lbu`: load byte unsigned; R[rt] = {24b'0,M[R[rs]+SignExtImm] (7:0)}
+
+## Immediate Operands (constant)
+
+`sll` by i bits = multiply by $2^i$
+
+`srl` by i bits = divides by $2^i$ (unsigned only)
+
+### load 32-bits constant
+
+- `lui rt, constant`
+  - copies 16-bit constant to left 16 bits of rt
+  - clear right 16-bits of rt to 0
+- `ori $t0, $t0, 0x....` \\$t1 = \$t2| ZeroExtImm
+
+```assembly
+# load 0x56781234 to register $s3
+lui $s3, 0x5678
+ori $s3, $s3, 0x1234
+```
+
+For the number stored in a byte if its value is larger than **(10000000) or(80)hex**. If we want to load its original value to a new register, we need to use `lbu`. If we use lb at this time, the value stored in the new register will be negative.
+
+## If/For
+
+no `blt`, `bge`
+
+`beq`, `bne` common; combined with `slt`, `slti`, `sltiu`
+
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200918204354042.png" alt="image-20200918204354042" style="zoom:33%;" />
+
+
+
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200918204439309.png" alt="image-20200918204439309" style="zoom:33%;" />
+
+## Byte/Halfword Operations 
+
+```assembly
+# i.e. load in byte 0xFA
+/*Signed, with sign extension*/
+	lb rt, offset(rs)		# offset could be any integer;in rt 0xFFFFFFFA
+	lh rt, offset(rs)
+/*Unsigned, with zero extension*/
+	lbu rt, offset(rs)		# offset could be any integer; in rt 0x000000FA
+	lhu rt, offset(rs)
+```
+
+
 
 ## Assembly Language
 
@@ -108,27 +217,15 @@ _main:
 
 ![bg2018012216](http://www.ruanyifeng.com/blogimg/asset/2018/bg2018012216.png)
 
-## Register Convention
 
->  \$zero: constant 0 (reg 0, also written as 0)
->  \$at: Assembler Temporary (reg 1, or 1)
->  \$v0, v1: result values (reg’s 2 and 3, or 2 and 3)
-> \$a0 – a3: arguments (reg’s 4 – 7, or 4 - 7)
-> \$t0 – t7: temporaries (reg’s 8 – 15, or 8 - 15); can be overwritten by callee
-> \$ s0 – s7: saved (reg’s 16 – 23, or 16 - 23); be saved/restored by callee
->  \$t8, t9: temporaries (reg’s 24 and 25, or 24 and 25)
->  \$k0, k1: reserved for OS kernel (reg’s 26 and 27, 26/27) 
->
-> \$gp: global pointer for static data (reg 28, or 28)
->  \$sp: stack pointer (reg 29, or 29)
->  \$fp: frame pointer (reg 30, or 30)
->  \$ra: return address (reg 31, or \$31)
 
 
 
 # Chapter 3
 
-program stored in memory 
+**Function**
+
+program stored in memory , instructions represented in binary, like data 
 
 > Similarly, in the execution of a procedure, the program must follow these six steps:
 >
@@ -299,3 +396,16 @@ void sort (int v[], int n) {
 ```
 
 Problem: `sort` needs the value in \$a0 and \$a1, `swap` need to have the parameters placed in those same registers. 
+
+
+
+## Meaning of each name
+
+Here is the meaning of each name of the fields in MIPS instructions:
+
+- *op:* Basic operation of the instruction, traditionally called the **opcode**.
+- *rs:* The first register source operand.
+- *rt:* The second register source operand.
+- *rd:* The register destination operand. It gets the result of the operation.
+- *shamt:* Shift amount. (Section 2.6 explains shift instructions and this term; it will not be used until then, and hence the field contains zero in this section.)
+- *funct:* Function. This field, often called the *function code,* selects the specific variant of the operation in the op field.
