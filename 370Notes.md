@@ -227,6 +227,20 @@ _main:
 
 program stored in memory , instructions represented in binary, like data 
 
+## **program counter**
+
+(PC) (instruction address register)
+
+- address of the instruction is sotred in PC 
+- 32 bits register 
+- a special register in CPU (not same as the registers in register file)
+
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200917145047483.png" alt="image-20200917145047483" style="zoom:30%;" />
+
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200917153557980.png" alt="image-20200917153557980" style="zoom:40%;" />
+
+## function calling
+
 > Similarly, in the execution of a procedure, the program must follow these six steps:
 >
 > 1. Put parameters in a place where the procedure can access them.
@@ -236,9 +250,17 @@ program stored in memory , instructions represented in binary, like data
 > 5. Put the result value in a place where the calling program can access it.
 > 6. Return control to the point of origin, since a procedure can be called from several points in a program.
 
-- jump-and-link instruction 
+### Function call instructions
+
+- *Function call operation*:  jump-and-link instruction `jal FunctionLabel` (J-type)
 
   An instruction that jumps to an address and simultaneously saves the address of the following instruction in a register ($ra in MIPS).
+
+  - \$ra = PC+4 (the address of following instruction)
+
+- *Function return operation*: jump register `jr $ra` (R-type)
+
+  - PC = \$ra; Copies \$ra to program counter 
 
 - return address
 
@@ -250,32 +272,14 @@ program stored in memory , instructions represented in binary, like data
 
 - Callee: A procedure that executes a series of stored instructions based on parameters provided by the caller and then returns control to the caller.
 
-- **program counter** (PC) (instruction address register)
-
-  - address of the instruction is sotred in PC 
-  - 32 bits register 
-  - a special register in CPU (not same as the registers in register file)
-
-<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200917145047483.png" alt="image-20200917145047483" style="zoom:30%;" />
-
 - **stack pointer** (\$sp)
   - pointing to the bottom of the stack 
-
-<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200917153557980.png" alt="image-20200917153557980" style="zoom:40%;" />
 
 - frame pointer (\$fp)
 
 a frame pointer offers a stable base register within a procedure for local memory-references. as \$sp might change 
 
-- Function calling
-
-```assembly
-jal Functionlabel1 # J-type function call operations jump and link
-									# $ra = PC +4; address of following instruction Pc = target address
-jr $ra # R-type PC = $ra jump register
-```
-
-- leaf function
+### leaf function
 
 > Eg1: see swap
 
@@ -297,7 +301,7 @@ jr $ra # return from function
 
 <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200917215149676.png" alt="image-20200917215149676" style="zoom:40%;" />
 
-- Non-leaf funciton
+### Non-leaf funciton
 
 > Eg2: see sort 
 
@@ -319,6 +323,29 @@ int fact (int n) {
 ```
 
 argument n in \$a0, result in \$v0
+
+```assembly
+fact: 
+		addi $sp, $sp, -8
+		sw $ra, 4($sp)
+		sw $a0, 0($sp)
+		slti $t0, $a0, 1
+		beq $t0, $zero, L1
+		addi $v0, $zero, 1
+		addi $sp, $sp, 8
+		jr $ra
+L1: 
+		addi $a0, $a0, 1
+		jal fact
+		lw $a0, 0($sp)
+		lw $ra, 4($sp)
+		addi $sp, $sp, 8
+		mul $v0, $a0, $v0 # how to implement it not using mul
+		jr $ra
+
+```
+
+
 
 ## Function Calling Convention
 
