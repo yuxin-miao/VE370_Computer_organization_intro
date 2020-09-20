@@ -29,6 +29,22 @@ Performance
 
 <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200918202135979.png" alt="image-20200918202135979" style="zoom:50%;" />
 
+```bash
+# c language 
+# need preprocessor 
+gcc -E test.c > test.i
+
+gcc -S test.s # obtain test.s
+gcc -c test.c # obtain test.o, which is machine code to read $ hexdump text.o
+/*or*/
+hexdump -C test.c # to show ASCII 
+gcc test.o -o test # obtain executable machine code test 
+# so gcc could followed by test.c or test.o
+
+```
+
+
+
 - Instruction Set 
   - RISC: reduced instruction set computer
   - CISC: complex instruction set computer
@@ -150,7 +166,7 @@ For the number stored in a byte if its value is larger than **(10000000) or(80)h
 
 ## If/For
 
-no `blt`, `bge`
+no `blt`, `bge`, `ble`, `bgt`
 
 `beq`, `bne` common; combined with `slt`, `slti`, `sltiu`
 
@@ -193,6 +209,8 @@ int main() {
 ```
 $ gcc -S example.c
 ```
+
+**arm! but not mips **
 
 example.s
 
@@ -370,6 +388,8 @@ when to apply
   - destroy stack frame (by moving \$sp upwards)
   - `jr $ra`
 
+  <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200920130607592.png" alt="image-20200920130607592" style="zoom:67%;" />
+
   
 
 ## Example
@@ -415,7 +435,7 @@ void swap(int v[], int k) {
 void sort (int v[], int n) {
   int i, j;
   for (i = 0; i < n; i += 1) {
-  	for (j = i – 1; j >= 0 && v[j] > v[j + 1]; j += 1) { 
+  	for (j = i – 1; j >= 0 && v[j] > v[j + 1]; j -= 1) { 
       swap(v,j);
   	} 
   }
@@ -424,7 +444,123 @@ void sort (int v[], int n) {
 
 Problem: `sort` needs the value in \$a0 and \$a1, `swap` need to have the parameters placed in those same registers. 
 
+v in \$a0, n in \$a1, i in \$s0, j in \$s1 
 
+```assembly
+sort:
+		addi $sp, $sp, -20
+		sw $ra, 16($sp)
+		sw $s3, 12($sp)
+		sw $s2, 8($sp)
+		sw $s1, 4($sp)
+		sw $s0, 0($sp)
+		add $s2, $a0, $zero	# $s2 = BA of v
+		add $s3, $a1, $zero	# s3 = n
+		add $s0, $zero, $zero	# i = 0
+for1tst: 
+		slt $t0, $s0, $s3
+		beq $t0, $zer0, exit1 # when i >= n, exit the first loop
+		addi $s1, $s0, -1 # j = i - 1
+for2tst:
+		slt $t0, $s1, 0
+		bne $t0, $zero, exit2 # when j < 0 exit the second loop
+		sll $t1, $s1, 2 # $t1 = j*4
+		add $t2, $t1, $s2 # t2: the address of v[j]; v + j * 4
+		lw $t3, 0($t2) # v[j]
+		lw $t4, 4($t2) # v[j + 1]
+		sll $t0, $t4, $t3
+		beq $t0, $zero, exit2 # v[j] < v[j + 1]
+		add $a0, $s2, $zero # prepare for the paramete needed for next function call swap
+		add $a1, $s1, $zero
+		jal swap
+		addi $s1, $s1, -1
+		j for2tst
+exit2: 
+		addi $s0, $s0, 1 #i+=1
+		j for1tst
+exit1: 
+	 lw $s0, 0($sp)
+	 lw $s1, 4($sp)
+	 lw $s2, 8($sp)
+	 lw $s3, 12($sp)
+	 lw $ra, 16($sp)
+	 addi $sp, $sp, 12
+	 jr $ra 							# return to calling routine 
+	
+
+```
+
+
+
+## Translation and Startup
+
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200919103108277.png" alt="image-20200919103108277" style="zoom:33%;" />
+
+### Complier 
+
+tansform the C program into an assembly language program (a symbolic form of waht the machine understands)
+
+### assembler 
+
+> To produce the binary version of each instruction in the assembly language program, the assembler must determine the addresses corresponding to all labels. Assemblers keep track of labels used in branches and data transfer instructions in a **symbol table**. As you might expect, the table contains pairs of symbols and addresses.
+
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200919104550827.png" alt="image-20200919104550827" style="zoom:33%;" />
+
+**producing an object module**
+
+Example 
+
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200919105156829.png" alt="image-20200919105156829" style="zoom:33%;" />
+
+​			- In the object file: 
+
+> the instructions in assembly language just to make the example understandable; in reality, the instructions would be numbers.
+
+​		*Note that the address and symbols that must be updated in the link process is higlighted*: 
+
+				1. the instructions that refer to the address of procedures $A$ and $B$
+
+				2. ​	the instructions that refers to the data word $X$ and $Y$
+
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200919105719045.png" alt="image-20200919105719045" style="zoom:50%;" />
+
+### linker 
+
+Also called link editor. A systems program that combines independently assembled machine language programs and resolves all undefined labels into an **executable file**.
+
+	1. merge segments
+ 	2. resolve labels (determine their address)
+ 	3. patch location-dependent and external reference 
+
+**example of linked objects**
+
+> the text segment starts at address 40 0000hex and the data segment at 1000 0000hex.
+
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200919111236159.png" alt="image-20200919111236159" style="zoom:50%;" />
+
+> 1. The jals are easy because they use pseudodirect addressing. The jal at address 40 0004hex gets 40 0100hex (the address of procedure B) in its address field, and the jal at 40 0104hex gets 40 0000hex (the address of procedure A) in its address field.
+> 2. The load and store addresses are harder because they are relative to a base register. This example uses the global pointer as the base register. Figure 2.13 shows that $gp is initialized to 1000 8000hex. To get the address 1000 0000hex (the address of word X), we place -­8000hex in the address field of lw at address 40 0000hex. Similarly, we place ­7980hex in the address field of sw at address 40 0100hex to get the address 1000 0020hex (the address of word Y).
+
+**从哪里看出来是-8000hex？？？**
+
+### Loader
+
+> 1. Reads the executable file header to determine size of the text and data segments.
+> 2. Creates an address space large enough for the text and data.
+> 3. Copies the instructions and data from the executable file into memory.
+> 4. Copies the parameters (if any) to the main program onto the stack.
+> 5. Initializes the machine registers and sets the stack pointer to the first free location. (\$sp, \$gp, \$fp)
+> 6. Jumps to a start-up routine.
+>    - copies the parameters into the argument registers  (\$a0...) and calls the main routine
+>    -  When the main routine returns, the start-up routine terminates the program with an exit system call
+
+之前讲了static link， 即before the program is run *1. the library routines become part of the executable file 2. it loads all routines in the library that are called anywhere executable*
+
+so -> **dynamically linked libraries (DLLs)**: Library routines that are linked to a program during execution.
+
+###  Dynamic Linking
+
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200919113501211.png" alt="image-20200919113501211" style="zoom:50%;" />
 
 ## Meaning of each name
 
