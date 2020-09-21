@@ -572,3 +572,24 @@ Here is the meaning of each name of the fields in MIPS instructions:
 - *rd:* The register destination operand. It gets the result of the operation.
 - *shamt:* Shift amount. (Section 2.6 explains shift instructions and this term; it will not be used until then, and hence the field contains zero in this section.)
 - *funct:* Function. This field, often called the *function code,* selects the specific variant of the operation in the op field.
+
+
+
+## Addressing in Branches and Jumps
+
+- J-type: 6 bits for operation field and the rest of the bits for the address field. 
+
+`j 10000` can be assembled into 
+
+|   2    |  10000  |
+| :----: | :-----: |
+| 6 bits | 26 bits |
+
+the value of the jump opcode is 2 and the jump address is 10000
+
+- PC-relative addressing 
+
+a branch instruction would calculate: Program counter = Register + Branch address
+
+for conditional branches: loops and $if$ statements 
+
