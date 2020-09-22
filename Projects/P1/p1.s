@@ -29,46 +29,56 @@ tempArrary:
 	.word	1
 	.word	0
 	.word	-3
-	.word	32
+	.word	30
 	.word	-19
 	.word	33
+str1:
+    .asciiz "hotDay = "
+str2: 
+    .asciiz "coldDay = "
+str3:
+    .asciiz "comfortDay = "
 	.text
 	.align	2
 	.globl	main 
-main:      # 部分restore可以吗
+main:     
     lui     $a0, 0x1000
     ori     $a0, $a0, 0x1000    # BA of tempArray in $a0
     addi    $a1, $zero, 32      # numElements in a1
     add     $s0, $zero, $zero   # $s0 = hotDay = 4
     add     $s1, $zero, $zero   # $s1 = coldDay = 9
     add     $s2, $zero, $zero   # $s2 = comfortDay = 19
-    ## hotDay = countArray (tempArray, size, 1); 
-    addi    $a2, $zero, 1       # $a2 = cntType
-    addi    $sp, $sp, -24       # adjust stack for 3 items
-    sw      $a1, 20($sp)
-    sw      $a0, 16($sp)
-    sw      $ra, 12($sp)
-    sw      $s2, 8($sp)
+
+    ## First call: hotDay = countArray (tempArray, size, 1); 
+    addi    $a2, $zero, 1       # $a2 = cntType = 1
+    addi    $sp, $sp, -24       # adjust stack for 6 items
+    sw      $a1, 20($sp)        # save function arguments
+    sw      $a0, 16($sp)        
+    sw      $ra, 12($sp)        # save return address
+    sw      $s2, 8($sp)         # save saved register 
     sw      $s1, 4($sp)
     sw      $s0, 0($sp)
     jal     countArray
-    lw      $s0, 0($sp)          # only $s0 need to update
+    lw      $s0, 0($sp)          # restore all the value
     lw      $s1, 4($sp)
     lw      $s2, 8($sp) 
     lw      $ra, 12($sp)         # $ra / $a0 / $a1 needed when calling countArray again
     lw      $a0, 16($sp)
     lw      $a1, 20($sp)
     add     $s0, $s0, $v0
+    addi    $v0, $zero, 1       # to output the number
+    add     $a0, $s0, $zero
+    syscall
+    lw      $a0, 16($sp)
 
-    ## coldDay = countArray (tempArray, size, -1); 
-    addi    $a2, $zero, -1
+    ## Second call: coldDay = countArray (tempArray, size, -1); 
+    addi    $a2, $zero, -1      # $a2 = cntType = -1
     sw      $a1, 20($sp)
     sw      $a0, 16($sp)
     sw      $ra, 12($sp)
     sw      $s2, 8($sp)
     sw      $s1, 4($sp)
     sw      $s0, 0($sp)
-    ## only $s0 has chanegd, store this only
     jal     countArray
     lw      $s0, 0($sp)          
     lw      $s1, 4($sp)
@@ -77,9 +87,13 @@ main:      # 部分restore可以吗
     lw      $a0, 16($sp)
     lw      $a1, 20($sp)
     add     $s1, $s1, $v0
+    addi    $v0, $zero, 1       # to output the number
+    add     $a0, $s1, $zero
+    syscall
+    lw      $a0, 16($sp)
 
     ## comfortDay = countArray (tempArray, size, 0);
-    add     $a2, $zero, $zero
+    add     $a2, $zero, $zero   # $a2 = cntType = 0
     sw      $a1, 20($sp)
     sw      $a0, 16($sp)
     sw      $ra, 12($sp)
@@ -95,17 +109,21 @@ main:      # 部分restore可以吗
     lw      $a0, 16($sp)
     lw      $a1, 20($sp)
     add     $s2, $s2, $v0
+    addi    $v0, $zero, 1       # to output the number
+    add     $a0, $s2, $zero
+    syscall
+    lw      $a0, 16($sp)
     addi    $sp, $sp, 24
-    addi    $v0, $zero, 10      # prepare for exit
+    addi    $v0, $zero, 10      # for exit
     syscall
 
 ### Function countArray ###
 countArray:
     addi    $sp, $sp, -24       # adjust the stack for 6 items
-    sw      $a0, 20($sp)
+    sw      $a0, 20($sp)        # save function arguments 
     sw      $a1, 16($sp)
     sw      $a3, 12($sp)
-    sw      $ra, 8($sp)
+    sw      $ra, 8($sp)         # save return address 
     addi    $s0, $a1, -1        # $s0 for i = numElements - 1
     addi    $s1, $zero, 0       # $s1 for cnt = 0
 cntLoop:
