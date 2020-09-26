@@ -16,7 +16,7 @@ addu $fp, $sp, 32 # move Frame Pointer to base of frame.
 add $s0, $a0, $zero # get n from caller.
 slti $t0, $s0, 2
 bne $t0, $zero, fib_base_case # if n < 2, then do base case.
-sub $a0, $s0, 1 # compute fib (n - 1)
+addi $a0, $s0, -1 # compute fib (n - 1)
 jal fib #
 add $s1, $v0, $zero# s1 = fib (n - 1).
 sub $a0, $s0, 2 # compute fib (n - 2)
@@ -25,7 +25,7 @@ add $s2, $v0, $zero # $s2 = fib (n - 2).
 add $v0, $s1, $s2 # $v0 = fib (n - 1) + fib (n - 2).
 j fib_return
 fib_base_case: # in the base case, return 1.
-li $v0, 1
+addi $v0, $zero, 1
 fib_return:
 lw $ra, 28($sp) # restore the Return Address.
 lw $fp, 24($sp) # restore the Frame Pointer.

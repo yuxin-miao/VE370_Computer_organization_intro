@@ -32,16 +32,10 @@ tempArrary:
 	.word	30
 	.word	-19
 	.word	33
-str1:
-    .asciiz "hotDay = "
-str2: 
-    .asciiz "coldDay = "
-str3:
-    .asciiz "comfortDay = "
 	.text
 	.align	2
 	.globl	main 
-main:     
+main:      
     lui     $a0, 0x1000
     ori     $a0, $a0, 0x1000    # BA of tempArray in $a0
     addi    $a1, $zero, 32      # numElements in a1
@@ -58,6 +52,7 @@ main:
     sw      $s2, 8($sp)         # save saved register 
     sw      $s1, 4($sp)
     sw      $s0, 0($sp)
+    add     $t0, $t0, $0        # meaningless 
     jal     countArray
     lw      $s0, 0($sp)          # restore all the value
     lw      $s1, 4($sp)
@@ -66,10 +61,6 @@ main:
     lw      $a0, 16($sp)
     lw      $a1, 20($sp)
     add     $s0, $s0, $v0
-    addi    $v0, $zero, 1       # to output the number
-    add     $a0, $s0, $zero
-    syscall
-    lw      $a0, 16($sp)
 
     ## Second call: coldDay = countArray (tempArray, size, -1); 
     addi    $a2, $zero, -1      # $a2 = cntType = -1
@@ -79,6 +70,7 @@ main:
     sw      $s2, 8($sp)
     sw      $s1, 4($sp)
     sw      $s0, 0($sp)
+    add     $t0, $t0, $0        # meaningless 
     jal     countArray
     lw      $s0, 0($sp)          
     lw      $s1, 4($sp)
@@ -87,10 +79,7 @@ main:
     lw      $a0, 16($sp)
     lw      $a1, 20($sp)
     add     $s1, $s1, $v0
-    addi    $v0, $zero, 1       # to output the number
-    add     $a0, $s1, $zero
-    syscall
-    lw      $a0, 16($sp)
+
 
     ## comfortDay = countArray (tempArray, size, 0);
     add     $a2, $zero, $zero   # $a2 = cntType = 0
@@ -101,6 +90,8 @@ main:
     sw      $s1, 4($sp)
     sw      $s0, 0($sp)
     ## only $s1 has chanegd, store this only
+    add     $t0, $t0, $0        # meaningless 
+     add     $t0, $t0, $0        # meaningless 
     jal     countArray
     lw      $s0, 0($sp)          # no function call afterwards, restore all
     lw      $s1, 4($sp)
@@ -109,10 +100,6 @@ main:
     lw      $a0, 16($sp)
     lw      $a1, 20($sp)
     add     $s2, $s2, $v0
-    addi    $v0, $zero, 1       # to output the number
-    add     $a0, $s2, $zero
-    syscall
-    lw      $a0, 16($sp)
     addi    $sp, $sp, 24
     addi    $v0, $zero, 10      # for exit
     syscall
@@ -142,6 +129,7 @@ sCase2:
     jal		cold				# jump to cold and save position to $ra
     j       switchBreak
 sDefault:
+    add     $t0, $t0, $0        # meaningless 
     jal		comfort				# jump to comfort and save position to $ra
 switchBreak:
     lw      $s1, 0($sp)

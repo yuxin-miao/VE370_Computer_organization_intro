@@ -115,15 +115,15 @@ The program is developed following the logic of C program.
 
 
 \begin{minted}{C}
-$a1 = size				// as numElements = 32 
-$s0 = hotDay 			// as 0
-$s1 = coldDay 			// as 0
+$a1 = size			// as numElements = 32 
+$s0 = hotDay 		// as 0
+$s1 = coldDay 		// as 0
 $s2 = comfortDay 	// as 0
  \end{minted}
 function \mintinline{C}{countArray} is called three times. Before each call, make 
 \$a2 as 1/-1/0 and the \textbf{stack pointer} is adjusted for 6 items. The function arguments (\$a0, \$a1), return address (\$ra) and saved register (\$s0, \$s1, \$s2) are all saved into the stack before call \mintinline{C}{countArray} and restored after the function call. According to the return value in \$v0, the number of hotDay/coldDay/comfortDay are all determined.
 \item[•] In function \mintinline{C}{countArray}, define 
-\begin{minted}{python}
+\begin{minted}{C}
 $s0 = 0				// as numElements - 1 = 31 
 $s1 = cnt 			// as 0
  \end{minted}

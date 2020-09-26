@@ -1,3 +1,13 @@
+To run the .s file direclty through bash, use 
+
+```bash
+spim -bare
+read ""
+run
+```
+
+
+
 # Chapter 1
 
 Performance 
@@ -275,6 +285,7 @@ program stored in memory , instructions represented in binary, like data
   An instruction that jumps to an address and simultaneously saves the address of the following instruction in a register ($ra in MIPS).
 
   - \$ra = PC+4 (the address of following instruction)
+  - PC = Addr(function label)
 
 - *Function return operation*: jump register `jr $ra` (R-type)
 
@@ -291,8 +302,10 @@ program stored in memory , instructions represented in binary, like data
 - Callee: A procedure that executes a series of stored instructions based on parameters provided by the caller and then returns control to the caller.
 
 - **stack pointer** (\$sp)
-  - pointing to the bottom of the stack 
-
+  
+- pointing to the **top of the stack** 
+  - By mean top, not mean when adding more items, the address of \$sp would not become larger, but it should be subtracion.
+  
 - frame pointer (\$fp)
 
 a frame pointer offers a stable base register within a procedure for local memory-references. as \$sp might change 
@@ -348,7 +361,7 @@ fact:
 		sw $ra, 4($sp)
 		sw $a0, 0($sp)
 		slti $t0, $a0, 1
-		beq $t0, $zero, L1
+		beq $t0, $zero, L1 # the label tells where to go, such that L1 should have the address 
 		addi $v0, $zero, 1
 		addi $sp, $sp, 8
 		jr $ra
@@ -486,8 +499,145 @@ exit1:
 	 lw $ra, 16($sp)
 	 addi $sp, $sp, 12
 	 jr $ra 							# return to calling routine 
-	
+```
 
+- `fib`
+
+```c
+int fib(int n) {
+  if (n < 3)
+    return 1;
+  else 
+    return fib(n-1) + fib(n-2); 
+}
+```
+
+```assembly
+fib:
+	addi 	$sp, $sp, -12
+	sw		$s0, 8($sp)
+	sw 		$a0, 4($sp)
+	sw		$ra, 0($sp)
+	slti	$t0, $a0, 3
+	beq		$t0, $zero, else
+	# lw		$ra, 0($sp) unnecessary load here 
+	# lw		$a0, 4($sp)
+	addi	$sp, $sp, 12 
+	addi	$v0, $zero, 1
+	jr		$ra
+
+else:
+	lw		$ra, 0($sp)
+	lw		$a0, 4($sp)
+	addi 	$a0, $a0, -1
+	jal	 	fib
+
+	add	 	$s0, $v0, $zero	# we need $s0 to store the value so adjust the stack for 3 items 
+	sw 		$a0, 4($sp)
+	sw		$ra, 0($sp)
+	addi 	$a0, $a0, -2
+	jal 	fib
+	addi 	$t1, $v0, 0
+	lw		$ra, 0($sp)
+	lw		$a0, 4($sp)
+	addi	$sp, $sp, 8
+	add		$v0, $t1, $t0
+	jr 		$ra
+```
+
+
+
+```assembly
+# VE370 2020FA RC Week 3
+# Class exercise: fib
+# Author: Li Shi
+
+# Important note: 
+#   This program is written in Linux, and executed by
+#     1. spim -bare
+#     2. (spim) read "fib.s"
+#     3. (spim) run
+#   You may need to modify this program to execute in PCSpim.
+
+.text
+
+main:
+  addi  $a0,  $0,   8
+  jal   fib                 # Call fib(8)
+  add   $t0,  $t0,  $0      # Delay
+  add   $t0,  $t0,  $0      # Delay
+  addi  $a0,  $v0,  0       # Print fib(8)
+  addi  $v0,  $0,   1       
+  syscall
+  addi  $v0,  $0,   10      # System call 10 (exit)
+  syscall                   # Exit
+
+fib:
+  addi  $sp,  $sp,  -12     # Allocate the stack frame
+  sw    $ra,  8($sp)
+  sw    $a0,  4($sp)
+  sw    $s0,  0($sp)        # We will use $s0 later
+  slti  $t0,  $a0,  3       # Test for n < 3
+  beq   $t0,  $0,   elseBlock
+  addi  $v0,  $0,   1       # return 1 
+  addi  $sp,  $sp,  12 
+  jr    $ra
+  add   $t0,  $t0,  $0      # Delay
+
+elseBlock:
+  addi  $a0,  $a0,  -1
+  jal   fib                 # fib(n-1)
+  add   $t0,  $t0,  $0      # Delay
+  add   $t0,  $t0,  $0      # Delay
+  addi  $s0,  $v0,  0       # Q: What is $s0 used for?
+  addi  $a0,  $a0,  -1
+  jal   fib                 # fib(n-2)
+  add   $t0,  $t0,  $0      # Delay
+  add   $t0,  $t0,  $0      # Delay
+  add   $v0,  $v0,  $s0     # return fib(n-1)+fib(n-2)
+  lw    $s0,  0($sp)
+  add   $t0,  $t0,  $0      # Delay
+  add   $t0,  $t0,  $0      # Delay
+  lw    $a0,  4($sp)
+  add   $t0,  $t0,  $0      # Delay
+  add   $t0,  $t0,  $0      # Delay
+  lw    $ra,  8($sp)    
+  add   $t0,  $t0,  $0      # Delay
+  add   $t0,  $t0,  $0      # Delay
+  addi  $sp,  $sp,  12      # Pop the stack
+  add   $t0,  $t0,  $0      # Delay
+  add   $t0,  $t0,  $0      # Delay
+  jr    $ra
+  add   $t0,  $t0,  $0      # Delay
+
+```
+
+
+
+## Template
+
+- if ($s0 < $s1) { ... } else { ... }
+
+```assembly
+      slt $t0, $s0, $s1
+      beq $t0, $zero, else 
+      ....
+      j elseExit ## remember to jump out when finish if 
+else: ....
+elseExit: 
+```
+
+- for ($t0 = 0; $t0 < $a1; $t0++) { ... }
+
+```assembly
+Loop:
+		add $t0, $zero, $zero
+		slt $t1, $t0, $a1
+		beq $t1, $zero, exit
+		...
+		addi $t0, $t0, 1
+		j Loop
+exit:
 ```
 
 
@@ -519,7 +669,7 @@ Example
 ​		*Note that the address and symbols that must be updated in the link process is higlighted*: 
 
 				1. the instructions that refer to the address of procedures $A$ and $B$
-
+	
 				2. ​	the instructions that refers to the data word $X$ and $Y$
 
 <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200919105719045.png" alt="image-20200919105719045" style="zoom:50%;" />
