@@ -6,7 +6,7 @@ read ""
 run
 ```
 
-
+REMEMBER: 2’s complement
 
 # Chapter 1
 
@@ -366,7 +366,7 @@ fact:
 		addi $sp, $sp, 8
 		jr $ra
 L1: 
-		addi $a0, $a0, 1
+		addi $a0, $a0, -1
 		jal fact
 		lw $a0, 0($sp)
 		lw $ra, 4($sp)
@@ -379,6 +379,8 @@ L1:
 
 
 ## Function Calling Convention
+
+do not follow convention not mean syntax error, but highly likely to create error 
 
 when to apply 
 
@@ -670,28 +672,30 @@ Example
 
 				1. the instructions that refer to the address of procedures $A$ and $B$
 	
-				2. ​	the instructions that refers to the data word $X$ and $Y$
+				2. the instructions that refers to the data word $X$ and $Y$
 
 <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200919105719045.png" alt="image-20200919105719045" style="zoom:50%;" />
 
 ### linker 
 
-Also called link editor. A systems program that combines independently assembled machine language programs and resolves all undefined labels into an **executable file**.
+Also called link editor. A systems program that combines independently assembled machine language programs and resolves all undefined labels into an **executable file**. 
 
-	1. merge segments
+1. merge segments
+
  	2. resolve labels (determine their address)
  	3. patch location-dependent and external reference 
 
 **example of linked objects**
+
+Object is already machine language, but no memory has been traslated (the translator do not know about)
 
 > the text segment starts at address 40 0000hex and the data segment at 1000 0000hex.
 
 <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200919111236159.png" alt="image-20200919111236159" style="zoom:50%;" />
 
 > 1. The jals are easy because they use pseudodirect addressing. The jal at address 40 0004hex gets 40 0100hex (the address of procedure B) in its address field, and the jal at 40 0104hex gets 40 0000hex (the address of procedure A) in its address field.
-> 2. The load and store addresses are harder because they are relative to a base register. This example uses the global pointer as the base register. Figure 2.13 shows that $gp is initialized to 1000 8000hex. To get the address 1000 0000hex (the address of word X), we place -­8000hex in the address field of lw at address 40 0000hex. Similarly, we place ­7980hex in the address field of sw at address 40 0100hex to get the address 1000 0020hex (the address of word Y).
-
-**从哪里看出来是-8000hex？？？**
+> 2. The load and store addresses are harder because they are relative to a base register. This example uses the global pointer as the base register. Figure 2.13 shows that $gp is initialized to 1000 8000hex. To get the address 1000 0000hex (the address of word X), we place 8000hex in the address field of lw at address 40 0000hex (Because it is 2’s complement). Similarly, we place ­7980hex in the address field of sw at address 40 0100hex to get the address 1000 0020hex (the address of word Y).
+> 3. also output an object file 
 
 ### Loader
 
@@ -710,9 +714,25 @@ so -> **dynamically linked libraries (DLLs)**: Library routines that are linked 
 
 ###  Dynamic Linking
 
+dll: dynamic linking library
+
 <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200919113501211.png" alt="image-20200919113501211" style="zoom:50%;" />
 
-## Meaning of each name
+
+
+# Topic 4
+
+Instructoin coding, how the **assembler and linker** transform into machine code. 
+
+MIPS instruction -> 32 bits words, translated into binary information (machine code)
+
+first 6 bits -> opcode always, for all three types. Based on this, CPU now what to do.
+
+## R-format
+
+ totally 32 bits, can see from the **reference card** ![image-20200928083358704](/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200928083358704.png)
+
+### Instruction fields
 
 Here is the meaning of each name of the fields in MIPS instructions:
 
@@ -720,10 +740,62 @@ Here is the meaning of each name of the fields in MIPS instructions:
 - *rs:* The first register source operand.
 - *rt:* The second register source operand.
 - *rd:* The register destination operand. It gets the result of the operation.
-- *shamt:* Shift amount. (Section 2.6 explains shift instructions and this term; it will not be used until then, and hence the field contains zero in this section.)
+- *shamt:* Shift amount. (Section 2.6 explains shift instructions and this term; it will not be used until then, and hence the field contains zero in this section.) only use when shift, represents the number we want to shift (0-31)
 - *funct:* Function. This field, often called the *function code,* selects the specific variant of the operation in the op field.
 
+> add \$t0, \$s1, \$s2
+>
+> add: 0 (opcode)
+>
+> rs: \$s1 (5 -bits store the memory) 10001
+>
+> rt: \$s2 10010
+>
+> rd: \$t0 (becasue this is the register destination)01000
 
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200928084133611.png" alt="image-20200928084133611" style="zoom:33%;" />
+
+
+
+## I-format
+
+i- immediate number 
+
+![image-20200928084210292](/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200928084210292.png)
+
+**rt: destination now** however it could also be source (determine by read / write operation)
+
+rs: source or base address register 
+
+constant / address: $-2^{15}$ to $2^{15}-1$ / offset added to base address in rs
+
+Read: source register  			 Write: destination 
+
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200928084346097.png" alt="image-20200928084346097" style="zoom:33%;" />
+
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200928084559327.png" alt="image-20200928084559327" style="zoom:33%;" />
+
+
+
+```assembly
+sw	$t0, 4($s0) 	# $s0->rs / $t0 -> rt
+```
+
+read from the register both \$s0->rs \$t0->rt. // no destination register needed 
+
+relative address = (LOOP-PC-4)/4.  // because relative address should have a 32-bits address, so by calculation, we could use relative address (16 bits)
+
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200928084836733.png" alt="image-20200928084836733" style="zoom:33%;" />
+
+## J-format
+
+![image-20200928085339660](/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200928085339660.png)
+
+encode full address in instruction, use 26 bits represent a 32 bits address 
+
+leave the first 4 bits of PC untouched. 
+
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200928085659606.png" alt="image-20200928085659606" style="zoom:33%;" />
 
 ## Addressing in Branches and Jumps
 
@@ -742,4 +814,67 @@ the value of the jump opcode is 2 and the jump address is 10000
 a branch instruction would calculate: Program counter = Register + Branch address
 
 for conditional branches: loops and $if$ statements 
+
+## Decoding Machine Code
+
+1. converting hex to binary to find **op fields**, determine the operation
+2. 
+
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200928140704517.png" alt="image-20200928140704517" style="zoom:50%;" />
+
+-  How to get address
+
+  - immediate addressing 
+    - I-type `addi $s0, $s1, -1`
+  - register addressing 
+    - R-type / I-type : all or some operands provided by register IDs directly `add $t0, $s0, $s1`
+  - base addressing 
+    - I-type: operands provided by using base address of memory location `lw $t0, 32($s0)`
+  - PC-relative addressing
+    - Operands relative to PC, used for near branch *target address = PC + 4 + offest \* 4* , `beq $s0, $s1, LESS`
+  - Pseudodirect addressing
+    - encode full address in instruction J-type (`j` and `jal`) *target address = PC[31:28] : address \* 4*
+
+
+  *instructions from memory & data from/into RF/memory*
+
+  <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200930114747486.png" alt="image-20200930114747486" style="zoom:33%;" />
+
+  
+
+# T05 
+
+Review of Digital Logic 
+
+who to control reading  / writing? do not read / write at the same time -> control signal in RF 
+
+- memory (access memory is slower than access RF, because of the big circuit of memory, need to decode the address)
+
+  - SRAM (Static RAM)
+
+  <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200930130847535.png" alt="image-20200930130847535" style="zoom:50%;" />
+
+  - DRAM
+
+  <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200930131212504.png" alt="image-20200930131212504" style="zoom:50%;" />
+
+  memory in MIPS 
+
+  insturction memory: only read afterwards 
+
+  data memory: only one address for read / write 
+
+  ![image-20200930131317240](/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200930131317240.png)
+
+  
+
+  ​		
+
+  # T06
+
+  Single Cycle Processor 
+
+  PC is controled by clock signal
+
+  
 
