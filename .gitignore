@@ -541,3 +541,5 @@ TSWLatexianTemp*
 # End of https://www.toptal.com/developers/gitignore/api/latexslides
 slides
 VE370-master2
+*ncj*
+*lbq*

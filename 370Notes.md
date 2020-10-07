@@ -198,7 +198,7 @@ no `blt`, `bge`, `ble`, `bgt`
 	lhu rt, offset(rs)
 ```
 
-
+<font color=#CD5C5C>有时候要注意offset是否要乘4，如果array是存储的bytes而不是words，则不需要乘4</font>
 
 ## Assembly Language
 
@@ -755,6 +755,8 @@ Here is the meaning of each name of the fields in MIPS instructions:
 
 <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200928084133611.png" alt="image-20200928084133611" style="zoom:33%;" />
 
+`add` and `sub` have the same opcode, use the different `func` field to distinguish between these two. 
+
 
 
 ## I-format
@@ -775,7 +777,7 @@ Read: source register  			 Write: destination
 
 <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200928084559327.png" alt="image-20200928084559327" style="zoom:33%;" />
 
-
+- 
 
 ```assembly
 sw	$t0, 4($s0) 	# $s0->rs / $t0 -> rt
@@ -785,7 +787,27 @@ read from the register both \$s0->rs \$t0->rt. // no destination register needed
 
 relative address = (LOOP-PC-4)/4.  // because relative address should have a 32-bits address, so by calculation, we could use relative address (16 bits)
 
+- 
+
+```assembly
+lui		$t0, 255 	# because $t0 is the destination register
+```
+
+| opcode | rs    | rt    | Immediate           |
+| ------ | ----- | ----- | ------------------- |
+| 001111 | 00000 | 01000 | 0000 0000 1111 1111 |
+
+- 
+
 <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200928084836733.png" alt="image-20200928084836733" style="zoom:33%;" />
+
+
+
+
+
+
+
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20201005110337077.png" alt="image-20201005110337077" style="zoom:50%;" />
 
 ## J-format
 
@@ -842,21 +864,23 @@ for conditional branches: loops and $if$ statements
 
   
 
-# T05 
+# T05
 
 Review of Digital Logic 
 
 who to control reading  / writing? do not read / write at the same time -> control signal in RF 
 
+
+
 - memory (access memory is slower than access RF, because of the big circuit of memory, need to decode the address)
 
   - SRAM (Static RAM)
 
-  <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200930130847535.png" alt="image-20200930130847535" style="zoom:50%;" />
+  ![image-20200930130847535](file:///Users/yuxinmiao/Library/Application%20Support/typora-user-images/image-20200930130847535.png?lastModify=1601950411)
 
   - DRAM
 
-  <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200930131212504.png" alt="image-20200930131212504" style="zoom:50%;" />
+  ![image-20200930131212504](file:///Users/yuxinmiao/Library/Application%20Support/typora-user-images/image-20200930131212504.png?lastModify=1601950411)
 
   memory in MIPS 
 
@@ -864,17 +888,59 @@ who to control reading  / writing? do not read / write at the same time -> contr
 
   data memory: only one address for read / write 
 
-  ![image-20200930131317240](/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200930131317240.png)
+  ![image-20200930131317240](file:///Users/yuxinmiao/Library/Application%20Support/typora-user-images/image-20200930131317240.png?lastModify=1601950411)
 
   
 
-  ​		
 
-  # T06
 
-  Single Cycle Processor 
+# T06
 
-  PC is controled by clock signal
 
-  
 
+Single Cycle Processor Chapter 4.1-4.4
+
+■■ The **memory-reference** instructions load word (lw) and store word (sw) 
+
+■■ The **arithmetic-logical** instructions add, sub, AND, OR, and slt
+
+■■ The instructions **branch** equal (beq) and jump (j), which we add last
+
+PC is controled by clock signal
+
+every instruction, needs: send the PC to the memory that contains the code and fetch the instruction from that memory / read one or two registers, using fields of the instruction to select. 
+
+*state element:* a memory element, such as a register or a memory 
+
+- clocking methodology: edge-triggered clocking: a clocking scheme in which ass state changes occur on a clock edge. Only state elements can store data value, **any collection of combinational logic must have its inputs come from a set of state elements and its outputs written into a set of state elements**. The inputs are values that were written in a previous clock cycle, while the outputs  are values that can be used in a following clock cycle.
+- ALUOp & funct -> ALU Control
+
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20201007102736810.png" alt="image-20201007102736810" style="zoom:33%;" />
+
+​		Generate a 2-bit ALUOp (by CPI controller). With ALUOp and funct field -> ALU control
+
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20201007103211448.png" alt="image-20201007103211448" style="zoom:50%;" />
+
+> ​		that is, using multiple levels of decoding -> reduce the size of the main control unit (opcode before)
+
+The corresponding truth table is as follows, don’t care term all represented with X
+
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20201007103747839.png" alt="image-20201007103747839" style="zoom:50%;" />
+
+- instruction format 
+
+  `opcode` bits [31:26] as Op[5:0]
+
+  Two register be read `rs` `rt` [25:21] and [20:16] (R-type, beq, store)
+
+  base register for load and store `rs` [25:21] 
+
+  offset [15:0] (beq, load, store)
+
+  destination register - load: `rt` [20:16]
+
+  ​									- R-type: `rd` [15:11] -> use a Mux to select 
+
+- usage of seven control lines 
+
+  <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20201007105307315.png" alt="image-20201007105307315" style="zoom:50%;" />

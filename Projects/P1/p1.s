@@ -91,7 +91,7 @@ main:
     sw      $s0, 0($sp)
     ## only $s1 has chanegd, store this only
     add     $t0, $t0, $0        # meaningless 
-     add     $t0, $t0, $0        # meaningless 
+    add     $t0, $t0, $0        # meaningless
     jal     countArray
     lw      $s0, 0($sp)          # no function call afterwards, restore all
     lw      $s1, 4($sp)
