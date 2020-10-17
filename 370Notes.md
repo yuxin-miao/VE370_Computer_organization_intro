@@ -304,6 +304,7 @@ program stored in memory , instructions represented in binary, like data
 - **stack pointer** (\$sp)
   
 - pointing to the **top of the stack** 
+  
   - By mean top, not mean when adding more items, the address of \$sp would not become larger, but it should be subtracion.
   
 - frame pointer (\$fp)
@@ -890,7 +891,7 @@ who to control reading  / writing? do not read / write at the same time -> contr
 
   ![image-20200930131317240](file:///Users/yuxinmiao/Library/Application%20Support/typora-user-images/image-20200930131317240.png?lastModify=1601950411)
 
-  
+  If need write, write first 
 
 
 
@@ -944,3 +945,51 @@ The corresponding truth table is as follows, don’t care term all represented w
 - usage of seven control lines 
 
   <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20201007105307315.png" alt="image-20201007105307315" style="zoom:50%;" />
+
+For R-type, will not use data memory 
+
+lw: read register from register file, ALU calculate the address, read data from data memory, store the data read back to register file 
+
+![image-20201013152850305](/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20201013152850305.png)
+
+### Clocking Methodology
+
+`lw` load type instruction will need most time (becasuse of read from data)
+
+`beq` only read from register and do some calculation, will not cost more time
+
+*sigle-cycle processor* is not feasible to vary period for differerent instructions
+
+![image-20201016131205087](/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20201016131205087.png)
+
+​	clock cycle time for single-cycle processor will be 800ps, regardless of the instructions’ distribution
+
+​	execution time is $100*800ps$
+
+
+
+*multi-cycle CPU* - FSM: each instruction takes multiple cycles to execute 
+
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20201016132709964.png" alt="image-20201016132709964" style="zoom:50%;" />
+
+​	still which operation will take the longest time - Instr Fetch: 200ps 
+
+​	However, with different distribution, multi-cycle will have different total execution time, some may be worse than single-cycle some may be worse. 
+
+## T07
+
+Pipelined Processor 
+
+divide the big combinational circuit into five small stages, one step per stage per cycle  
+
+1. IF:  Instruction fetch
+2. ID:  Instruction decode and register file read 
+3. EX:  Execution or address calculation
+4. MEM:  Data memory access
+5. WB:  Write result back to register 
+
+Single-clock-cycle diagram / multi-clock-cycle diagram
+
+Instruction-level parallism: multiple instructions exectued at the same time
+
+execution time for each instruction does not improve (all need to execute the five stages)
