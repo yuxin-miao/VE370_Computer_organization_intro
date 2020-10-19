@@ -15,9 +15,9 @@ Performance
 - $$
   \begin{equation}
   \begin{aligned}
-  \rm{\textbf{CPU Time}}&=\rm{CPU\ Clock\ Cycles\ per\ program \times Clock\ Cycle\ Time}\\
-   &=\frac{\rm{CPU\ Clock\ Cycles}}{\rm{Clock \ Rate}} \\
-   &= \frac{\rm{IC}\times \rm{CPI}}{\rm{Clock\ Rate}} \\
+  \rm{\textbf{CPU Time}}&=\rm{CPU\ Clock\ Cycles\ per\ program \times Clock\ Cycle\ Time}\\[2ex]
+   &=\frac{\rm{CPU\ Clock\ Cycles}}{\rm{Clock \ Rate}} \\[2ex]
+   &= \frac{\rm{IC}\times \rm{CPI}}{\rm{Clock\ Rate}} \\[2ex]
    &= \frac{\rm{Instructions}}{\rm{Programs}} \times \frac{\rm{Clock\ Cycles}}{\rm{Instruction}} \times \frac{\rm{Seconds}}{\rm{Clock\ Cycles}}
   \end{aligned}
   \end{equation}
@@ -35,7 +35,7 @@ Performance
 
 # Chapter 2
 
-<p center> **Operation and Operands ** <p>
+<p center> **Operation and Operands ** </p>
 
 <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20200918202135979.png" alt="image-20200918202135979" style="zoom:50%;" />
 
@@ -129,7 +129,7 @@ h in \$s2, base address of A in \$s3
 
 from the content in register (\$s3), the content + offset (32), is the address of the content need to be loaded.
 
-The content in the address ( content in register (\$s3) + offset (32)) is loaded in \$t0
+The content in the address ( Reg[$s3]) + offset (32)) is loaded in \$t0
 
 `$t0 ` load in the content in this address. Content: A[8]
 
@@ -976,7 +976,9 @@ lw: read register from register file, ALU calculate the address, read data from 
 
 ​	However, with different distribution, multi-cycle will have different total execution time, some may be worse than single-cycle some may be worse. 
 
-## T07
+
+
+# T07
 
 Pipelined Processor 
 
@@ -993,3 +995,10 @@ Single-clock-cycle diagram / multi-clock-cycle diagram
 Instruction-level parallism: multiple instructions exectued at the same time
 
 execution time for each instruction does not improve (all need to execute the five stages)
+
+# T08 
+
+Data Hazards 
+
+- add stalls: nop instructions 
+- forwarding (bypassing) : use data before it is stored into the register 
