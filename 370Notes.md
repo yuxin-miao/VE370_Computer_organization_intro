@@ -164,7 +164,7 @@ Store the content in \$t0, into the content of the address (content in \$s3 + 48
 - `lui rt, constant`
   - copies 16-bit constant to left 16 bits of rt
   - clear right 16-bits of rt to 0
-- `ori $t0, $t0, 0x....` \\$t1 = \$t2| ZeroExtImm
+- `ori $t0, $t0, 0x....` \$t1 = \$t2| ZeroExtImm
 
 ```assembly
 # load 0x56781234 to register $s3
