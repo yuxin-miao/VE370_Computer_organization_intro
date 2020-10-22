@@ -253,7 +253,7 @@ _main:
 
 **Function**
 
-program stored in memory , instructions represented in binary, like data 
+program stored in memory , instructions represented in binary, like data. *Each instruction is stored as a word in PC, so 0:0, 4:100, 8: 1000*, all the instruction will be ended with 2’b0. 
 
 ## **program counter**
 
@@ -372,7 +372,7 @@ L1:
 		lw $a0, 0($sp)
 		lw $ra, 4($sp)
 		addi $sp, $sp, 8
-		mul $v0, $a0, $v0 # how to implement it not using mul
+		mul $v0, $a0, $v0
 		jr $ra
 
 ```
@@ -996,9 +996,69 @@ Instruction-level parallism: multiple instructions exectued at the same time
 
 execution time for each instruction does not improve (all need to execute the five stages)
 
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20201020211402324.png" alt="image-20201020211402324" style="zoom:50%;" />
+
+
+
 # T08 
 
 Data Hazards 
 
 - add stalls: nop instructions 
 - forwarding (bypassing) : use data before it is stored into the register 
+
+<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20201020212106089.png" alt="image-20201020212106089" style="zoom:50%;" />
+
+hazard notation 
+
+1a.  EX/MEM.RegisterRd = ID/EX.RegisterRs 
+
+1b. EX/MEM.RegisterRd = ID/EX.RegisterRt 
+
+2a.  MEM/WB.RegisterRd = ID/EX.RegisterRs 
+
+2b. MEM/WB.RegisterRd = ID/EX.RegisterRt
+
+1. Forwarding in EX stage 
+
+   we consider  only  the  challenge  of  forwarding  to  an  operation  in  the  EX  stage,  which  may  be  either an ALU operation or an effective address calculation. (instruction tries to use a register in its EX stage that an earlier instruction intends  to write in its WB stage, we actually need the values as inputs to the ALU. )
+
+   ```
+   EX hazard 
+   if (EX/MEM.RegWrite  // check whether previous a WB to register file needed 
+    and (EX/MEM.RegisterRd ≠ 0)  // check whether we need to change the content of $zero
+    and (EX/MEM.RegisterRd = ID/EX.RegisterRs)) // check whether the destination register need to use for this ALU
+    ForwardA = 10
+   
+   if (EX/MEM.RegWrite
+    and (EX/MEM.RegisterRd ≠ 0)
+    and (EX/MEM.RegisterRd = ID/EX.RegisterRt)) ForwardB = 10
+   ```
+
+   <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20201020214146582.png" alt="image-20201020214146582" style="zoom:50%;" />
+
+   > Note  that  the  EX/MEM.RegisterRd  field  is  the  register  destination  for  either  an ALU instruction (which comes from the Rd field of the instruction) or a load  (which comes from the Rt field).
+
+   <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20201022085644224.png" alt="image-20201022085644224" style="zoom:50%;" />
+
+   ```
+   MEM HARZARD
+   if (MEM/WB.RegWrite
+   	and (MEM/WB.RegisterRd ≠ 0)
+   	and not(EX/MEM.RegWrite and (EX/MEM.RegisterRd ≠ 0))
+   			and (EX/MEM.RegisterRd ≠ ID/EX.RegisterRs)
+   	and (MEM/WB.RegisterRd = ID/EX.RegisterRs)) ForwardA = 01
+   
+   if (MEM/WB.RegWrite
+   	and (MEM/WB.RegisterRd ≠ 0)
+   	and not(EX/MEM.RegWrite and (EX/MEM.RegisterRd ≠ 0))
+   		and (EX/MEM.RegisterRd ≠ ID/EX.RegisterRt)
+   	and (MEM/WB.RegisterRd = ID/EX.RegisterRt)) ForwardB = 01
+   ```
+
+   <img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20201022085828078.png" alt="image-20201022085828078" style="zoom:50%;" />
+
+   ​	**To select the signed immidiate, add another MUX unit (choose from the output of forward B between signExtend)**
+
+   ​	<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20201022090130778.png" alt="image-20201022090130778" style="zoom:50%;" />
+
