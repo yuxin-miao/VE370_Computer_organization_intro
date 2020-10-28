@@ -1062,3 +1062,21 @@ hazard notation
 
    ​	<img src="/Users/yuxinmiao/Library/Application Support/typora-user-images/image-20201022090130778.png" alt="image-20201022090130778" style="zoom:50%;" />
 
+### Load use hazard detection
+
+*If value not computed when needed*
+
+\$2 is needed in `and` instruction before it is read from data mem
+
+![image-20201024104037856](/Users/yuxinmiao/Documents/JI/JI2020Fall/VE370/image/image-20201024104037856.png)*
+
+
+
+<img src="/Users/yuxinmiao/Documents/JI/JI2020Fall/VE370/image/image-20201024103630013.png" alt="image-20201024103630013" style="zoom:50%;" />
+
+​	Add the stall by 
+
+- Force control signals in ID/EX stage to 0’s (the MUX) (nothing will do with this 0 control signals)
+- Prevent the update of PC and IF/ID register `PCWrite=0, IF/IDWrite=0 when Hazard=1`
+
+<img src="/Users/yuxinmiao/Documents/JI/JI2020Fall/VE370/image/image-20201024103916398.png" alt="image-20201024103916398" style="zoom:50%;" />
