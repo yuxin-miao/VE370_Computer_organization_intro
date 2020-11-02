@@ -7,7 +7,6 @@
 `include "ALUcontrol.v"
 `include "ALU.v"
 `include "DataMemory.v"
-
 `include "Forwardingunit.v"
 `include "top.v"
 
@@ -287,8 +286,6 @@ module PipelinedProcessor(
         .MEMWBDst(registerrd_wb)
         .IFIDRs(rs_id),
         .IFIDRt(rt_id),
-        .MEMWBRegisterRd(registerrd_wb),
-
 
         .MEMWBMemRead(memread_wb),
         .MEMWBRegWrite(regwrite_wb),
